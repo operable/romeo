@@ -15,7 +15,7 @@ defmodule Romeo.Stanza do
     Romeo.XML.encode!(record)
   end
 
-  def to_xml(%IQ{} = stanza) do
+  def to_xml(%IQ{xml: nil} = stanza) do
     xmlel(name: "iq",
       attrs: [
         {"to", to_string(stanza.to)},
@@ -23,6 +23,16 @@ defmodule Romeo.Stanza do
         {"id", stanza.id}
       ]
     ) |> to_xml
+  end
+
+  def to_xml(%IQ{xml: xml} = stanza) when is_list(xml) do
+    xmlel(name: "iq",
+      attrs: [
+        {"to", to_string(stanza.to)},
+        {"type", stanza.type},
+        {"id", stanza.id}
+      ],
+      children: xml) |> to_xml
   end
 
   def to_xml(%Presence{} = stanza) do
@@ -103,7 +113,7 @@ defmodule Romeo.Stanza do
     cdata = xmlcdata(content: hash)
     xmlel(name: "handshake", children: [cdata])
   end
-  
+
   def auth(mechanism), do: auth(mechanism, [])
   def auth(mechanism, body) do
     xmlel(name: "auth",
